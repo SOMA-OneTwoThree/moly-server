@@ -11,27 +11,24 @@ moly-server/
 Vercel에는 **프로젝트 2개**로 붙인다 — 각 Root Directory를 `backend` / `frontend`로 지정(같은 레포, npm workspaces 불필요).
 
 ## backend — 역할
-- **인증**: Supabase Auth + 구글 OAuth. 헬스체크·auth 라우트만 공개, 나머지는 토큰 보호(`withAuth`/`requireUser`가 `supabase.auth.getUser()`로 권위 검증).
+- **인증**: 순수 API 서버. **Bearer 전용** — 모든 클라이언트(웹·앱·voice)가 Supabase access token을 `Authorization: Bearer <token>`로 보낸다. 헬스체크만 공개, 나머지는 토큰 보호(`withAuth`/`requireUser`가 `supabase.auth.getUser(token)`로 권위 검증). 로그인(토큰 발급)은 프론트가 Supabase SDK로 직접 처리.
 - **canonical 유저 식별자**: `auth.users.id`(JWT `sub`, uuid). 모든 보호 경로가 이 값만 신원으로 사용.
-- 웹/앱이 붙는 **서버리스 REST 엔드포인트 서버**. 미들웨어는 CORS·세션 갱신·조기 차단만(보안 경계는 핸들러).
+- 웹/앱이 붙는 **서버리스 REST 엔드포인트 서버**. 미들웨어는 CORS + Bearer 조기 차단만(보안 경계는 핸들러).
 
 ### 엔드포인트
 | 메서드 | 경로 | 공개 | 용도 |
 |---|---|---|---|
 | GET | `/api/health` | ✅ | 헬스체크 |
-| GET | `/api/auth/login` | ✅ | 구글 OAuth 시작(웹·동일도메인 보조) |
-| GET | `/api/auth/callback` | ✅ | PKCE 교환 → 세션 쿠키 |
-| POST | `/api/auth/logout` | ✅ | 세션 클리어 |
-| GET | `/api/me` | 🔒 | 인증 유저 + profile |
+| GET | `/api/me` | 🔒 | 인증 유저 + profile (Bearer) |
 
 ### backend env (Vercel 프로젝트 환경변수 / 로컬은 `backend/.env`)
 | 키 | 설명 |
 |---|---|
 | `SUPABASE_URL` | Supabase 프로젝트 URL |
 | `SUPABASE_ANON_KEY` | 공개(publishable/anon) 키 |
-| `SUPABASE_SERVICE_ROLE_KEY` | 서비스 롤(secret) 키 — **서버 전용, 노출 금지** |
-| `APP_ORIGIN` | 이 서버의 공개 origin(OAuth redirect 기준) |
 | `CORS_ALLOWED_ORIGINS` | 허용 origin(쉼표 구분). **정확한 origin만**(trailing slash·경로 금지) |
+
+> service_role(secret) 키와 `APP_ORIGIN`은 현재 코드에서 쓰지 않는다(쿠키 웹로그인·admin 클라이언트 제거됨). RLS를 우회하는 service-role 엔드포인트가 생기면 그때 `SUPABASE_SERVICE_ROLE_KEY`를 다시 추가한다.
 
 ## frontend — 역할
 구글 로그인 버튼 하나로 **발급(프론트 SDK)→Bearer→백엔드 `getUser`** 전체 체인을 눈으로 확인하는 최소 앱. 로그인 후 `/api/me`를 호출해 본인 신원(JSON)을 화면에 출력.

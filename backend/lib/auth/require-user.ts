@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseTokenClient } from "@/lib/supabase/token";
 
 export type AuthContext = {
@@ -11,30 +10,25 @@ export type AuthContext = {
 };
 
 /**
- * Resolve the authenticated user from EITHER an `Authorization: Bearer <token>`
- * header (native/app clients) OR the cookie session (web clients).
+ * Resolve the authenticated user from an `Authorization: Bearer <token>` header.
+ * All clients (web/app/voice) send the Supabase access token this way.
  *
- * `getUser()` / `getUser(token)` always hits the Supabase Auth server, so the
- * returned user is authoritative — the JWT is never trusted locally. Returns
- * `null` when neither path yields a valid user.
+ * `getUser(token)` always hits the Supabase Auth server, so the returned user is
+ * authoritative — the JWT is never trusted locally. Returns `null` when there is
+ * no Bearer header or the token is invalid.
  */
 export async function requireUser(
   req: NextRequest,
 ): Promise<AuthContext | null> {
   const authz = req.headers.get("authorization");
+  if (!authz?.startsWith("Bearer ")) return null;
 
-  if (authz?.startsWith("Bearer ")) {
-    const token = authz.slice("Bearer ".length).trim();
-    if (!token) return null;
-    const supabase = createSupabaseTokenClient(token);
-    const { data, error } = await supabase.auth.getUser(token);
-    if (error || !data.user) return null;
-    return { user: data.user, supabase };
-  }
+  const token = authz.slice("Bearer ".length).trim();
+  if (!token) return null;
 
-  // Fall back to the cookie session (web).
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
+  const supabase = createSupabaseTokenClient(token);
+  const { data, error } = await supabase.auth.getUser(token);
   if (error || !data.user) return null;
+
   return { user: data.user, supabase };
 }
