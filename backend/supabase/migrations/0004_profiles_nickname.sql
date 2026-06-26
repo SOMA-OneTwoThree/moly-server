@@ -23,6 +23,8 @@ alter table public.profiles rename column display_name to nickname;
 alter table public.profiles add column if not exists updated_at timestamptz not null default now();
 
 -- nickname 제약: NOT NULL + 트림 후 1~20자. 중복 허용(unique 없음).
+-- (적용 전 profiles에 NULL/제약 위반 row가 남아 있으면 먼저 비울 것:
+--   delete from public.profiles;)
 alter table public.profiles alter column nickname set not null;
 alter table public.profiles
   add constraint profiles_nickname_len
