@@ -19,29 +19,13 @@ drop function if exists public.handle_new_user();
 -- 2. 컬럼 정리: display_name → nickname, locale 제거, updated_at 추가
 -- ============================================================
 alter table public.profiles drop column if exists locale;
--- rename은 IF EXISTS 문법이 없어, 부분 적용/재실행에도 안전하도록 가드.
-do $$
-begin
-  if exists (
-    select 1 from information_schema.columns
-    where table_schema = 'public'
-      and table_name = 'profiles'
-      and column_name = 'display_name'
-  ) then
-    alter table public.profiles rename column display_name to nickname;
-  end if;
-end $$;
+alter table public.profiles rename column display_name to nickname;
 alter table public.profiles add column if not exists updated_at timestamptz not null default now();
 
--- 0002 트리거/백필이 만든 자동생성 row 중 새 제약(NOT NULL, 1~20자)을 못 만족하는
--- 것을 정리. 새 모델에선 profile은 온보딩으로만 생기므로 이 row들은 삭제가 맞다.
--- (auth.users는 유지 → 해당 사용자는 다음 로그인 때 profile:null로 온보딩을 다시 탄다)
-delete from public.profiles
-where nickname is null or char_length(trim(nickname)) not between 1 and 20;
-
 -- nickname 제약: NOT NULL + 트림 후 1~20자. 중복 허용(unique 없음).
+-- (적용 전 profiles에 NULL/제약 위반 row가 남아 있으면 먼저 비울 것:
+--   delete from public.profiles;)
 alter table public.profiles alter column nickname set not null;
-alter table public.profiles drop constraint if exists profiles_nickname_len;
 alter table public.profiles
   add constraint profiles_nickname_len
   check (char_length(trim(nickname)) between 1 and 20);
