@@ -158,13 +158,14 @@ Supabase 대시보드 **SQL Editor**에서 `0001 → 0002 → 0003 → 0004` 순
 | `SUPABASE_SERVICE_ROLE_KEY` | service_role(secret) 키 — admin 클라이언트용. **절대 클라이언트 노출 금지** |
 | `CORS_ALLOWED_ORIGINS` | 허용 origin(쉼표 구분). **정확한 origin만**(trailing slash·경로 금지) |
 
-## 10. 개선 백로그 (기록만 — 이번 문서화에서는 코드 미변경)
+## 10. 개선 백로그
 
-향후 리팩토링 후보. 지금은 동작 보존을 위해 손대지 않는다.
+### 처리 완료
+- ✅ **라우트 간 중복 로직 제거**: `req.json()` try/catch → `normalizeNickname` → 400 분기를 `lib/http/nickname-body.ts`의 `parseNicknameBody`로 추출(nickname/onboarding 공용). (admin 클라이언트 생성은 이미 `createSupabaseAdminClient()` 팩토리로 단일화돼 있어 별도 래퍼 미추출.)
+- ✅ **에러 응답 형식 통일 + 내부 메시지 비노출**: `lib/http/responses.ts`의 `errorResponse`(의도된 4xx)·`internalError`(일반화 500) 도입. DELETE/PATCH/POST가 노출하던 `{error: error.message}`를 `{error:"Internal server error"}`로 마스킹하고, 원인은 `console.error`로 서버 로그에만 남긴다. `GET /api/me`도 같은 문자열로 정규화.
 
-- 라우트 간 **중복 로직**: `req.json()` try/catch → `normalizeNickname` → admin 클라이언트 생성 블록이 nickname/onboarding에 거의 동일하게 반복. 공용 헬퍼(`parseNickname`, `getAdmin`)로 추출 여지.
-- **에러 응답 형식 불일치**: `GET /api/me`는 `{error:"Database error"}`로 마스킹하나, DELETE/PATCH/POST는 `{error: error.message}`로 **DB 원문 노출**. 응답/에러 헬퍼로 통일 + 내부 메시지 비노출 권장.
-- admin 쓰기 라우트는 `requireUser`가 만든 **토큰 클라이언트를 인증 검증에만 쓰고 데이터 작업엔 쓰지 않는다**(매 요청 토큰 클라이언트 1회 생성 비용).
+### 향후 리팩토링 후보 (동작 보존 위해 미적용)
+- admin 쓰기 라우트는 `requireUser`가 만든 **토큰 클라이언트를 인증 검증에만 쓰고 데이터 작업엔 쓰지 않는다**(매 요청 토큰 클라이언트 1회 생성 비용). 인증 전용 경로 분리 여지.
 - **주석 언어 혼재**: 인프라/인증/CORS는 영어, 도메인/라우트/마이그레이션은 한국어.
 - `token.ts`는 env를 non-null 단언으로만 사용(검증 없음) — `admin.ts`처럼 명시 검증 가능.
 - **검증 라이브러리 부재**: 본문 파싱이 `as { nickname?: unknown }` 캐스트에 의존. zod 등 스키마 도입 여지.
