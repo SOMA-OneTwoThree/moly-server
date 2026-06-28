@@ -1,0 +1,26 @@
+/*
+ * 다크 테마 디자인 토큰(단일 출처). 기존에 page.tsx 인라인 스타일·layout.tsx·
+ * 공개 페이지 CSS Module에 raw hex로 흩어져 있던 색을 한곳에 모았다.
+ * 값은 기존과 동일하게 유지하되, 다음 2가지만 의도적으로 단일화한다:
+ *   - --border: #23262d / #2a2c33 혼용 → #2a2c33로 통일
+ *   - --accent: 앱 포인트색을 #6ea8fe로 통일(단 구글 로그인 버튼은 --google 유지)
+ */
+:root {
+  --bg: #0b0c10;
+  --text: #e8e8e8;
+  --text-strong: #ffffff;
+  --text-muted: #b6bdc7;
+  --text-subtle: #8b929e;
+  --surface: #16181d;
+  --surface-raised: #14161b;
+  --surface-inset: #0f1115;
+  --border: #2a2c33;
+  --accent: #6ea8fe;
+  --google: #4285f4; /* 구글 브랜드 — 로그인 버튼 전용 */
+  --danger: #ff8a8a;
+  /* 공개 페이지(policy/support) 전용 일회성 색 — 동일 값 유지 */
+  --text-bright: #f0f0f0;
+  --link-soft: #c9d1d9;
+  --border-soft: #3a3d46;
+  --surface-deep: #101218;
+}

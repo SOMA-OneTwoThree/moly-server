@@ -55,8 +55,8 @@ export default function AuthCallback() {
     <main style={{ maxWidth: 480, margin: "0 auto", padding: "80px 20px" }}>
       {error ? (
         <>
-          <p style={{ color: "#ff8a8a" }}>{error}</p>
-          <Link href="/" style={{ color: "#4285f4" }}>
+          <p style={{ color: "var(--danger)" }}>{error}</p>
+          <Link href="/" style={{ color: "var(--accent)" }}>
             홈으로 돌아가기
           </Link>
         </>
