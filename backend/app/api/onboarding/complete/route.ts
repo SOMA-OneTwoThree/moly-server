@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { normalizeNickname } from "@/lib/profile/nickname";
+import { parseNicknameBody } from "@/lib/http/nickname-body";
+import { internalError } from "@/lib/http/responses";
 import { PROFILE_COLUMNS } from "@/types/profile";
 
 // admin 클라이언트(service_role)를 쓰므로 Node.js 런타임 고정.
@@ -22,20 +23,9 @@ export const runtime = "nodejs";
  *   401, 500
  */
 export const POST = withAuth(async (req, { user }) => {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const nickname = normalizeNickname((body as { nickname?: unknown })?.nickname);
-  if (!nickname) {
-    return NextResponse.json(
-      { error: "Invalid nickname (must be 1-20 chars after trimming)" },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseNicknameBody(req);
+  if ("error" in parsed) return parsed.error;
+  const { nickname } = parsed;
 
   const admin = createSupabaseAdminClient();
 
@@ -60,7 +50,8 @@ export const POST = withAuth(async (req, { user }) => {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return internalError();
   }
 
   return NextResponse.json({ profile: data }, { status: 201 });

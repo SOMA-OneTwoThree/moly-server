@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { internalError } from "@/lib/http/responses";
 import { PROFILE_COLUMNS } from "@/types/profile";
 
 // admin 클라이언트(service_role)를 쓰므로 Node.js 런타임 고정.
@@ -28,7 +29,8 @@ export const GET = withAuth(async (_req, { user, supabase }) => {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: "Database error" }, { status: 500 });
+    console.error(error);
+    return internalError();
   }
 
   return NextResponse.json({ profile: data ?? null });
@@ -50,7 +52,8 @@ export const DELETE = withAuth(async (_req, { user }) => {
   const admin = createSupabaseAdminClient();
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return internalError();
   }
   return NextResponse.json({ success: true });
 });
