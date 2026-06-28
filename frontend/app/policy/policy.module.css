@@ -2,8 +2,8 @@
   max-width: 760px;
   margin: 0 auto;
   padding: 40px 20px 96px;
-  background: #0b0c10;
-  color: #e8e8e8;
+  background: var(--bg);
+  color: var(--text);
   line-height: 1.75;
   font-size: 16px;
   word-break: keep-all;
@@ -18,23 +18,23 @@
   flex-wrap: wrap;
   padding: 12px 0;
   margin-bottom: 16px;
-  background: #0b0c10;
-  border-bottom: 1px solid #2a2c33;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
   z-index: 1;
 }
 
 .nav a {
   padding: 6px 12px;
   font-size: 14px;
-  color: #c9d1d9;
+  color: var(--link-soft);
   text-decoration: none;
-  border: 1px solid #2a2c33;
+  border: 1px solid var(--border);
   border-radius: 999px;
 }
 
 .nav a:hover {
-  background: #16181d;
-  color: #ffffff;
+  background: var(--surface);
+  color: var(--text-strong);
 }
 
 /* 헤딩 */
@@ -43,7 +43,7 @@
   line-height: 1.35;
   margin: 48px 0 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #2a2c33;
+  border-bottom: 1px solid var(--border);
 }
 
 .doc section:first-of-type h1:first-child {
@@ -58,7 +58,7 @@
 .doc h3 {
   font-size: 17px;
   margin: 24px 0 8px;
-  color: #f0f0f0;
+  color: var(--text-bright);
 }
 
 .doc p {
@@ -66,7 +66,7 @@
 }
 
 .doc strong {
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 /* 리스트 */
@@ -83,7 +83,7 @@
 /* 구분선 */
 .doc hr {
   border: none;
-  border-top: 1px solid #2a2c33;
+  border-top: 1px solid var(--border);
   margin: 32px 0;
 }
 
@@ -91,9 +91,9 @@
 .doc blockquote {
   margin: 16px 0;
   padding: 8px 16px;
-  border-left: 3px solid #3a3d46;
-  background: #14161b;
-  color: #b6bdc7;
+  border-left: 3px solid var(--border-soft);
+  background: var(--surface-raised);
+  color: var(--text-muted);
   border-radius: 0 6px 6px 0;
 }
 
@@ -103,14 +103,14 @@
 
 /* 링크 */
 .doc a {
-  color: #6ea8fe;
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 /* 인라인 코드 */
 .doc code {
-  background: #16181d;
+  background: var(--surface);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.9em;
@@ -128,19 +128,19 @@
 
 .doc th,
 .doc td {
-  border: 1px solid #2a2c33;
+  border: 1px solid var(--border);
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
 }
 
 .doc th {
-  background: #16181d;
-  color: #ffffff;
+  background: var(--surface);
+  color: var(--text-strong);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .doc tr:nth-child(even) td {
-  background: #101218;
+  background: var(--surface-deep);
 }

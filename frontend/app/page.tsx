@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { supabase, API_BASE } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
+import { apiFetch } from "@/lib/api";
 
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
@@ -37,16 +38,12 @@ export default function Home() {
   async function callMe() {
     setMeResult("");
     setMeError("");
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
-    if (!token) {
-      setMeError("세션 없음 — 먼저 로그인하세요.");
-      return;
-    }
     try {
-      const res = await fetch(`${API_BASE}/api/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetch("/api/me");
+      if (res === null) {
+        setMeError("세션 없음 — 먼저 로그인하세요.");
+        return;
+      }
       const body = await res.json();
       if (!res.ok) {
         setMeError(`HTTP ${res.status}: ${JSON.stringify(body)}`);
@@ -89,12 +86,12 @@ export default function Home() {
             <pre style={preStyle}>{meResult}</pre>
           )}
           {meError && (
-            <pre style={{ ...preStyle, color: "#ff8a8a" }}>{meError}</pre>
+            <pre style={{ ...preStyle, color: "var(--danger)" }}>{meError}</pre>
           )}
         </section>
       ) : (
         <section style={{ marginTop: 24 }}>
-          <button style={primaryBtn} onClick={signIn}>
+          <button style={googleBtn} onClick={signIn}>
             Google로 로그인
           </button>
         </section>
@@ -104,15 +101,16 @@ export default function Home() {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: "#16181d",
-  border: "1px solid #23262d",
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: 10,
   padding: 16,
   display: "grid",
   gap: 4,
 };
+// 앱 포인트색 버튼(/api/me 호출 등). 구글 로그인 버튼은 googleBtn(브랜드색)을 쓴다.
 const primaryBtn: React.CSSProperties = {
-  background: "#4285f4",
+  background: "var(--accent)",
   color: "#fff",
   border: "none",
   borderRadius: 8,
@@ -120,9 +118,14 @@ const primaryBtn: React.CSSProperties = {
   fontSize: 14,
   cursor: "pointer",
 };
+// 구글 로그인 전용 — 구글 브랜드 색을 유지한다.
+const googleBtn: React.CSSProperties = {
+  ...primaryBtn,
+  background: "var(--google)",
+};
 const ghostBtn: React.CSSProperties = {
   background: "transparent",
-  color: "#e8e8e8",
+  color: "var(--text)",
   border: "1px solid #3a3f47",
   borderRadius: 8,
   padding: "10px 16px",
@@ -130,8 +133,8 @@ const ghostBtn: React.CSSProperties = {
   cursor: "pointer",
 };
 const preStyle: React.CSSProperties = {
-  background: "#0f1115",
-  border: "1px solid #23262d",
+  background: "var(--surface-inset)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
   padding: 14,
   fontSize: 13,

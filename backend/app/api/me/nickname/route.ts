@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { normalizeNickname } from "@/lib/profile/nickname";
+import { parseNicknameBody } from "@/lib/http/nickname-body";
+import { errorResponse, internalError } from "@/lib/http/responses";
 import { PROFILE_COLUMNS } from "@/types/profile";
 
 // admin 클라이언트(service_role)를 쓰므로 Node.js 런타임 고정.
@@ -21,20 +22,9 @@ export const runtime = "nodejs";
  *   401, 500
  */
 export const PATCH = withAuth(async (req, { user }) => {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const nickname = normalizeNickname((body as { nickname?: unknown })?.nickname);
-  if (!nickname) {
-    return NextResponse.json(
-      { error: "Invalid nickname (must be 1-20 chars after trimming)" },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseNicknameBody(req);
+  if ("error" in parsed) return parsed.error;
+  const { nickname } = parsed;
 
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
@@ -45,11 +35,12 @@ export const PATCH = withAuth(async (req, { user }) => {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return internalError();
   }
   // 변경된 row가 없으면(=온보딩 전) profile 부재.
   if (!data) {
-    return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    return errorResponse("Profile not found", 404);
   }
 
   return NextResponse.json({ profile: data });

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "./globals.css";
 
 export const metadata = {
   title: "moly — 로그인 확인",
@@ -13,8 +14,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           fontFamily:
             "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
           margin: 0,
-          background: "#0b0c10",
-          color: "#e8e8e8",
+          background: "var(--bg)",
+          color: "var(--text)",
         }}
       >
         {children}
